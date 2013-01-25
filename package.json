@@ -1,0 +1,17 @@
+{
+  "name": "yavideo5",
+  "version": "0.0.0",
+  "description": "Yet Another HTML5 Video Player",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kTmnh/yavideo5.git"
+  },
+  "author": "Katsumasa Tamanaha",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "gitHead": "8d9554c79ea39bc4af2c45ac432601b4dff74d8e"
+}
