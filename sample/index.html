@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name = "viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<meta name="format-detection" content="telephone=no" />
+	<title>test</title>
+	<style>
+		body {
+			margin:0px;
+			padding:0px;
+			height:2048px;
+		}
+		#header {
+			position:fixed;
+			top:0px;
+			left:0;
+			right:0;
+			height:100px;
+			text-align:center;
+			line-height:1.8;
+			color:#ffffff;
+			background-color:#000000;
+			opacity:0.5;
+		}
+		#footer {
+			position:fixed;
+			top:300px;
+			left:0;
+			right:0;
+			height:100px;
+			text-align:center;
+			line-height:1.8;
+			color:#ffffff;
+			background-color:#000000;
+			opacity:0.5;
+		}
+		#bar1, #bar6 {
+			width:100%;
+			height:100px;
+			background-color:#ffcccc;
+		}
+		#bar2, #bar7 {
+			width:100%;
+			height:100px;
+			background-color:#ccffcc;
+		}
+		#bar3, #bar8 {
+			width:100%;
+			height:100px;
+			background-color:#ccccff;
+		}
+		#bar4, #bar9 {
+			width:100%;
+			height:100px;
+			background-color:#ffffcc;
+		}
+		#bar5, #bar10 {
+			width:100%;
+			height:100px;
+			background-color:#ccffff;
+		}
+	</style>
+	<script type="text/javascript" src="sunrise.js"></script>
+	<script type="text/javascript" src="sunrisesunset.js"></script>
+	<script type="text/javascript">
+		var temp = new SunriseSunset(2013, 2, 6, 35, 135);
+		console.log(temp.sunsetLocalHours(9)+"/"+temp.sunriseLocalHours(9));
+	</script>
+</head>
+<body>
+	<div id="header">Header</div>
+	<div id="bar1">bar1</div>
+	<div id="bar2">bar2</div>
+	<div id="bar3">bar3</div>
+	<div id="bar4">bar4</div>
+	<div id="bar5">bar5</div>
+	<div id="bar6">bar6</div>
+	<div id="bar7">bar7</div>
+	<div id="bar8">bar8</div>
+	<div id="bar9">bar9</div>
+	<div id="bar10">bar10</div>
+	<div id="footer">Footer</div>
+</body>
+</html>
