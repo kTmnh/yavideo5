@@ -38,8 +38,8 @@
 		//If the UA support HTML5 Video && the config has playable source available, then true. 
 	var useHTML5,
 		deleteUnusedElement,
-		autoplay, preload, loop, muted, poster, duration, currentTime, playbackRate,
-		isPlaying, isSeeking, isFullScreen,
+		autoplay, preload, loop, muted, poster, duration, currentTime, playbackRate = 1,
+		isPlaying, isSeeking, isFullScreen, hasTouchEvent,
 		//Current source from multiple sources of html5Video var.
 		src,
 		//File type of current source.
@@ -64,9 +64,9 @@
 		//Show browser built-in controller on fullscreen, then true.
 		fullScreenControls,
 		//Seekbar related vars
-		seekbarWidth, handleWidth, seekOffset,
+		seekbarWidth, handleWidth, seekOffset, seekbarX,
 		//Callback store
-		startFunction, timeUpdateFunction, completeFunction,
+		startFunction = function () {}, timeupdateFunction = function () {}, completeFunction = function () {},
 		//prototype
 		p = this.prototype = {
 			//Check available & playable source
@@ -116,12 +116,12 @@
 				return this;
 			},
 			setButtons: function () {
-				var hasTouchEvent = p.hasTouchEvent();
+				hasTouchEvent = p.hasTouchEvent();
 				var clickEvent = (hasTouchEvent) ? "touchend" : "click";
 				var mousedownEvent = (hasTouchEvent) ? "touchstart" : "mousedown";
 				if (playButton) playButton.addEventListener(clickEvent, p.clickPlay, false);
-				if (pauseButton) playButton.addEventListener(clickEvent, p.clickPause, false);
-				if (seekbar) playButton.addEventListener(mousedownEvent, p.mousedownSeekbar, false);
+				if (pauseButton) pauseButton.addEventListener(clickEvent, p.clickPause, false);
+				if (seekbar) seekbar.addEventListener(mousedownEvent, p.mousedownSeekbar, false);
 				return this;
 			},
 			initEvents: function () {
@@ -151,21 +151,187 @@
 			enableButton: function (buttonName, ev, fn) {
 				buttonName.addEventListener(ev, fn, false);
 			},
+			// Video Event Handlers
 			canplayListener: function () {
-				var durationMMSS = p.secToMMSS(this.duration);
-				var currentMMSS = p.secToMMSS(this.currentTime);
+				duration = this.duration;
+				currentTime = this.currentTime;
 				if (timeDisplay) {
-					timeDisplay.innerHTML = currentMMSS + " / " + durationMMSS;
+					timeDisplay.innerHTML = p.secToMMSS(currentTime) + " / " + p.secToMMSS(duration);
 				}
+			},
+			durationchangeLisntener: function () {
+				duration = this.duration;
+				currentTime = this.currentTime;
+				if (timeDisplay) {
+					timeDisplay.innerHTML = p.secToMMSS(currentTime) + " / " + p.secToMMSS(duration);
+				}
+			},
+			playListener: function () {
+				pauseButton.style.display = "block";
+				playButton.style.display = "none";
+				isPlaying = true;
+			},
+			pauseListener: function () {
+				pauseButton.style.display = "none";
+				playButton.style.display = "block";
+				isPlaying = false;
+			},
+			timeupdateListener: function (time) {
+				if (startFunction !== null) {
+					startFunction();
+					startFunction = null;
+				}
+				timeupdateFunction();
+				if (useHTML5) {
+					currentTime = this.currentTime;
+				} else {
+					//TO BE WRITTEN
+				}
+				if (!isSeeking) {
+					if (seekHandle) {
+						seekHandle.style.left = p.getSeekHandleLeft() + "px";
+					}
+					if (progressBar) {
+						progressBar.style.width = p.getProgressBarWidth() + "px";
+					}
+				}
+				if (timeDisplay) {
+					timeDisplay.innerHTML = p.secToMMSS(currentTime) + " / " + p.secToMMSS(duration);
+				}
+			},
+			getCurrentTime: function () {
+				if (useHTML5) {
+					currentTime = videoElement.currentTime * playbackRate;
+					getCurrentTime = function () {
+						return currentTime = videoElement.currentTime * playbackRate;
+					}
+					return currentTime;
+				} else {
+					currentTime = swf.getCurrentTimeSWF() * playbackRate;
+					getCurrentTime = function () {
+						return currentTime = swf.getCurrentTimeSWF() * playbackRate;
+					}
+					return currentTime;
+				}
+			},
+			getSeekHandleLeft: function () {
+				return ((currentTime / duration) * seekbarWidth - seekOffset);
+			},
+			getProgressBarWidth: function () {
+				return ((currentTime / duration) * seekbarWidth);
 			},
 			clickPlay: function () {
 				p.play();
 			},
+			clickPause: function () {
+				p.pause();
+			},
+			mousedownSeekbar: function (e) {
+				if (!isPlaying) {
+					p.clickPlay();
+				}
+				isSeeking = true;
+				var temp;
+				seekbarX = seekbar.getBoundingClientRect().left;
+				if (hasTouchEvent) {
+					temp = e.touches[0].pageX - seekbarX;
+				} else {
+					temp = e.pageX - seekbarX;
+				}
+				if (temp > 0 && temp < seekbarWidth) {
+					if (seekHandle) {
+						seekHandle.style.left = temp - seekOffset + "px";
+					}
+					if (progressBar) {
+						progressBar.style.width = temp + "px";
+					}
+				}
+				if (hasTouchEvent) {
+					window.addEventListener("touchmove", p.mousemoveWindow, false);
+					window.addEventListener("touchend", p.mouseleaveWindow, false);
+				} else {
+					window.addEventListener("mousemove", p.mousemoveWindow, false);
+					window.addEventListener("mouseleave", p.mouseleaveWindow, false);
+					window.addEventListener("mouseup", p.mouseleaveWindow, false);
+				}
+			},
+			mousemoveWindow: function (e) {
+				var temp;
+				if (hasTouchEvent) {
+					temp = e.touches[0].pageX - seekbarX;
+				} else {
+					temp = e.pageX - seekbarX;
+				}
+				if (temp > 0 && temp < seekbarWidth) {
+					if (seekHandle) {
+						seekHandle.style.left = temp - seekOffset + "px";
+					}
+					if (progressBar) {
+						progressBar.style.width = temp + "px";
+					}
+				}
+			},
+			mouseleaveWindow: function (e) {
+				var temp, targetTime;
+				if (hasTouchEvent) {
+					temp = e.touches[0].pageX - seekbarX;
+				} else {
+					temp = e.pageX - seekbarX;
+				}
+				if (temp < 0) {
+					temp = 0;
+				} else if (temp > seekbarWidth) {
+					temp = seekbarWidth;
+				}
+				targetTime = duration * (temp / seekbarWidth);
+				p.seek(targetTime);
+				if (hasTouchEvent) {
+					window.removeEventListener("touchmove", p.mousemoveWindow);
+					window.removeEventListener("touchend", p.mouseleaveWindow);
+				} else {
+					window.removeEventListener("mousemove", p.mousemoveWindow);
+					window.removeEventListener("mouseleave", p.mouseleaveWindow);
+					window.removeEventListener("mouseup", p.mouseleaveWindow);
+				}
+				isSeeking = false;
+			},
 			play: function () {
 				if (useHTML5) {
 					videoElement.play();
+					p.play = function () {
+						videoElement.play();
+					}
 				} else {
-					swf.playSWF();
+					objectElement.playSWF();
+					p.play = function () {
+						objectElement.playSWF();
+					}
+				}
+			},
+			pause: function () {
+				if (useHTML5) {
+					videoElement.pause();
+					p.pause = function () {
+						videoElement.pause();
+					}
+				} else {
+					objectElement.pauseSWF();
+					p.pause = function () {
+						objectElement.pauseSWF();
+					}
+				}
+			},
+			seek: function (targetTime) {
+				if (useHTML5) {
+					videoElement.currentTime = targetTime;
+					p.seek = function (targetTime) {
+						videoElement.currentTime = targetTime;
+					}
+				} else {
+					objectElement.seekSWF(targetTime);
+					p.seek = function (targetTime) {
+						objectElement.seekSWF(targetTime);
+					}
 				}
 			},
 			/* Convert file extension to MIME type.

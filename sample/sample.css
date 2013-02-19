@@ -26,6 +26,10 @@ body {
 	box-shadow:0px 1px 2px #333 inset;
 	background: -webkit-linear-gradient(top, #222 0%, #181818 90%);
 	background: linear-gradient(to bottom, #222 0%, #181818 90%);
+	user-select:none;
+	-webkit-user-select:none;
+	-moz-user-select:none;
+	-ms-user-select:none;
 }
 
 .button {
@@ -126,7 +130,6 @@ body {
 }
 
 #seekbar {
-	cursor:pointer;
 	position:absolute;
 	width:460px;
 	height:18px;
