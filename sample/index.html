@@ -1,86 +1,82 @@
 ﻿<!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 
 <head>
 	<meta charset="UTF-8">
 	<meta name = "viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-	<meta name="format-detection" content="telephone=no" />
+	<meta name="format-detection" content="telephone=no">
 	<title>test</title>
-	<style>
-		body {
-			margin:0px;
-			padding:0px;
-			height:2048px;
-		}
-		#header {
-			position:fixed;
-			top:0px;
-			left:0;
-			right:0;
-			height:100px;
-			text-align:center;
-			line-height:1.8;
-			color:#ffffff;
-			background-color:#000000;
-			opacity:0.5;
-		}
-		#footer {
-			position:fixed;
-			top:300px;
-			left:0;
-			right:0;
-			height:100px;
-			text-align:center;
-			line-height:1.8;
-			color:#ffffff;
-			background-color:#000000;
-			opacity:0.5;
-		}
-		#bar1, #bar6 {
-			width:100%;
-			height:100px;
-			background-color:#ffcccc;
-		}
-		#bar2, #bar7 {
-			width:100%;
-			height:100px;
-			background-color:#ccffcc;
-		}
-		#bar3, #bar8 {
-			width:100%;
-			height:100px;
-			background-color:#ccccff;
-		}
-		#bar4, #bar9 {
-			width:100%;
-			height:100px;
-			background-color:#ffffcc;
-		}
-		#bar5, #bar10 {
-			width:100%;
-			height:100px;
-			background-color:#ccffff;
-		}
-	</style>
-	<script type="text/javascript" src="sunrise.js"></script>
-	<script type="text/javascript" src="sunrisesunset.js"></script>
+	<link rel="stylesheet" href="sample.css" type="text/css">
+	<script type="text/javascript" src="../src/yavideo5.js"></script>
 	<script type="text/javascript">
-		var temp = new SunriseSunset(2013, 2, 6, 35, 135);
-		console.log(temp.sunsetLocalHours(9)+"/"+temp.sunriseLocalHours(9));
+		window.onload = function () {
+			var config = {
+				autoplay: false,
+				preload: "none",
+				loop: true,
+				poster: "",
+				videoElement: document.getElementById("video_player"),
+				objectElement: document.getElementById("external_player"),
+				playButton: document.getElementById("play_button"),
+				pauseButton: document.getElementById("pause_button"),
+				forwardButton: null,
+				rewindButton: null,
+				seekbar: document.getElementById("seekbar"),
+				seekHandle: document.getElementById("seek_handle"),
+				progressBar: document.getElementById("progress_bar"),
+				currentTimeDisplay: null,
+				durationDisplay: null,
+				remainingTimeDisplay: null,
+				timeDisplay: document.getElementById("time"),
+				fullScreenButton: null,
+				fullScreenControls: false,
+				html5Video:{
+					//m3u8: "example.m3u8",
+					mp4: "sol.mp4",
+					webm: "sol.webm",
+					ogv: "sol.ogg"
+				},
+				//flashVideo:"example.mp4",
+				deleteUnusedElement: true
+			};
+			var videoPlayer = new YAVideo5(config);
+		}
 	</script>
 </head>
 <body>
-	<div id="header">Header</div>
-	<div id="bar1">bar1</div>
-	<div id="bar2">bar2</div>
-	<div id="bar3">bar3</div>
-	<div id="bar4">bar4</div>
-	<div id="bar5">bar5</div>
-	<div id="bar6">bar6</div>
-	<div id="bar7">bar7</div>
-	<div id="bar8">bar8</div>
-	<div id="bar9">bar9</div>
-	<div id="bar10">bar10</div>
-	<div id="footer">Footer</div>
+	<div id="video_wrapper">
+		<video id="video_player">
+			<!-- In common usage, Object element is written as a child of Video element,
+				because modern browsers which support Video element feature can automatically IGNORE the child elements for fallback usage.
+				But, for some cases if you need Object element on modern browser,
+				for example, you have HTTP Live Streaming (playable on iOS/Android by Video element, NOT on PC browser)
+				and HTTP Dynamic Streaming (playable on Flash),
+				then you need to set Object elements as a sibling element, not a child element.
+				AND, set the config option deleteUnusedElement set as true, you can delete unused element.
+			<object data="player.swf" id="external_player" type="application/x-shockwave-flash">
+				<param name="movie" value="player.swf">
+				<param name="allowfullscreen" value="true">
+				<param name="allowscriptaccess" value="always">
+				<param name="wmode" value="transparent">
+			</object>
+			-->
+		</video>
+		<object data="player.swf" id="external_player" type="application/x-shockwave-flash">
+			<param name="movie" value="player.swf">
+			<param name="allowfullscreen" value="true">
+			<param name="allowscriptaccess" value="always">
+			<param name="wmode" value="transparent">
+		</object>
+		<div id="controller_set">
+			<div class="button" id="play_button"></div>
+			<div class="button" id="pause_button"></div>
+			<div id="time">00:00 / 00:00</div>
+			<div id="seekbar">
+				<div id="seek_background"></div>
+				<div id="progress_bar"></div>
+				<div id="seek_handle"></div>
+			</div>
+		</div>
+	</div>
 </body>
 </html>
