@@ -5,15 +5,15 @@
 	<meta charset="UTF-8">
 	<meta name = "viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
 	<meta name="format-detection" content="telephone=no">
-	<title>test</title>
+	<title>Video Player Sample</title>
 	<link rel="stylesheet" href="sample.css" type="text/css">
 	<script type="text/javascript" src="../src/yavideo5.js"></script>
 	<script type="text/javascript">
 		window.onload = function () {
 			var config = {
 				autoplay: false,
-				preload: "none",
-				loop: true,
+				preload: "metadata",
+				loop: false,
 				poster: "",
 				videoElement: document.getElementById("video_player"),
 				objectElement: document.getElementById("external_player"),
@@ -24,6 +24,7 @@
 				seekbar: document.getElementById("seekbar"),
 				seekHandle: document.getElementById("seek_handle"),
 				progressBar: document.getElementById("progress_bar"),
+				bufferedBar: document.getElementsByClassName("buffered_bar")[0],
 				currentTimeDisplay: null,
 				durationDisplay: null,
 				remainingTimeDisplay: null,
@@ -32,9 +33,9 @@
 				fullScreenControls: false,
 				html5Video:{
 					//m3u8: "example.m3u8",
-					mp4: "sol.mp4",
-					webm: "sol.webm",
-					ogv: "sol.ogg"
+					mp4: "wd.mp4",
+					webm: "wd.webm",
+					//ogv: "sol.ogg"
 				},
 				//flashVideo:"example.mp4",
 				deleteUnusedElement: true
@@ -73,6 +74,7 @@
 			<div id="time">00:00 / 00:00</div>
 			<div id="seekbar">
 				<div id="seek_background"></div>
+				<div class="buffered_bar"></div>
 				<div id="progress_bar"></div>
 				<div id="seek_handle"></div>
 			</div>

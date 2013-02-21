@@ -15,7 +15,6 @@ body {
 	height:360px;
 	margin:0px;
 	padding:0px;
-	background-color:#333;
 	/* video element need to set display as block for preventing unexpected bottom margin. */
 	display:block;
 }
@@ -30,6 +29,8 @@ body {
 	-webkit-user-select:none;
 	-moz-user-select:none;
 	-ms-user-select:none;
+	-pie-background: linear-gradient(#222 0%, #181818 90%);
+	behavior: url(PIE.htc);
 }
 
 .button {
@@ -42,10 +43,17 @@ body {
 	-webkit-user-select:none;
 	-moz-user-select:none;
 	-ms-user-select:none;
+	-pie-background: linear-gradient(#333 0%, #222 90%);
+	behavior: url(PIE.htc);
 }
 
-.button:hover {
+.button:hover,
+.button:focus,
+.button:active {
 	background:-webkit-linear-gradient(top, #383838 0%, #282828 90%);
+	background:linear-gradient(to bottom, #383838 0%, #282828 90%);
+	-pie-background:linear-gradient(#383838 0%, #282828 90%);
+	behavior: url(PIE.htc);
 }
 
 #play_button {
@@ -69,7 +77,9 @@ body {
 	border-bottom:8px solid transparent;
 }
 
-#play_button:hover:before {
+#play_button:hover:before,
+#play_button:focus:before,
+#play_button:active:before {
 	position:absolute;
 	content:"";
 	top:6px;
@@ -105,7 +115,9 @@ body {
 	border-right: 4px solid #f63;
 }
 
-#pause_button:hover:before {
+#pause_button:hover:before,
+#pause_button:focus:before,
+#pause_button:active:before {
 	position:absolute;
 	content:"";
 	top:6px;
@@ -164,6 +176,8 @@ body {
 	-webkit-user-select:none;
 	-moz-user-select:none;
 	-ms-user-select:none;
+	-pie-background: linear-gradient(#444 0%, #222 70%);
+	behavior: url(PIE.htc);
 }
 
 #seek_handle:before {
@@ -185,5 +199,15 @@ body {
 	top:7px;
 	box-shadow:0px 0px 2px #f63;
 	background-color:#f63;
+	border-radius:1px;
+}
+
+.buffered_bar {
+	position:absolute;
+	width:0px;
+	height:4px;
+	top:7px;
+	box-shadow:0px 0px 2px #000 inset, 0px -1px 0px #444 inset;
+	background-color:#333;
 	border-radius:1px;
 }

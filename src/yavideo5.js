@@ -8,7 +8,7 @@
 		}
 		//Set variables from config object. If not specified, then set default (|| value).
 		autoplay = config.autoplay || false;
-		preload = config.preload || "none";
+		preload = config.preload || "metadata";
 		loop = config.loop || false;
 		muted = config.muted || false;
 		poster = config.poster || "";
@@ -23,6 +23,7 @@
 		seekbar = config.seekbar || null;
 		seekHandle = config.seekHandle || null;
 		progressBar = config.progressBar || null;
+		bufferedBar = config.bufferedBar || null;
 		currentTimeDisplay = config.currentTimeDisplay || null;
 		durationDisplay = config.durationDisplay || null;
 		remainingTimeDisplay = config.remainingTimeDisplay || null;
@@ -31,15 +32,14 @@
 		fullScreenTarget = config.fullScreenTarget || null;
 		fullScreenControls = config.fullScreenControls || false;
 		deleteUnusedElement = config.deleteUnusedElement || false;
-
 		//Initializing flow
-		p.checkSource().setSeekbar().setButtons().initEvents();
+		p.checkSource().setSeekbar().setBufferedBar().setButtons().initEvents();
 	}
 		//If the UA support HTML5 Video && the config has playable source available, then true. 
 	var useHTML5,
 		deleteUnusedElement,
 		autoplay, preload, loop, muted, poster, duration, currentTime, playbackRate = 1,
-		isPlaying, isSeeking, isFullScreen, hasTouchEvent,
+		isPlaying, isSeeking, isFullScreen, hasTouchEvent, bufferedLength = 1, maxBufferedLength = 1,
 		//Current source from multiple sources of html5Video var.
 		src,
 		//File type of current source.
@@ -115,6 +115,15 @@
 				}
 				return this;
 			},
+			/* Set buffered bar.
+			 * First, set id attribute for buffered bar so that duplicated after by updateBufferedBar().
+			 */
+			setBufferedBar: function () {
+				if (bufferedBar) {
+					bufferedBar.setAttribute("id", "buffered0");
+				}
+				return this;
+			},
 			setButtons: function () {
 				hasTouchEvent = p.hasTouchEvent();
 				var clickEvent = (hasTouchEvent) ? "touchend" : "click";
@@ -124,6 +133,7 @@
 				if (seekbar) seekbar.addEventListener(mousedownEvent, p.mousedownSeekbar, false);
 				return this;
 			},
+			//Initialize
 			initEvents: function () {
 				if (useHTML5) {
 					p.initHTML5();
@@ -132,13 +142,15 @@
 				}
 				return this;
 			},
+			//Initialize HTML5 Video
 			initHTML5: function () {
 				videoElement.src = src;
 				videoElement.muted = muted;
 				videoElement.autoplay = autoplay;
 				videoElement.poster = poster;
 				videoElement.loop = loop;
-				videoElement.load();
+				videoElement.preload = preload;
+				videoElement.addEventListener("loadedmetadata", p.loadedmetadataListener, false);
 				videoElement.addEventListener("canplay", p.canplayListener, false);
 				videoElement.addEventListener("durationchange", p.durationchangeListener, false);
 				videoElement.addEventListener("play", p.playListener, false);
@@ -146,36 +158,63 @@
 				videoElement.addEventListener("timeupdate", p.timeupdateListener, false);
 				videoElement.addEventListener("ended", p.endedListener, false);
 				videoElement.addEventListener("error", p.errorListener, false);
+				playbackRate = videoElement.defaultPlaybackRate;
 				return this;
 			},
 			enableButton: function (buttonName, ev, fn) {
 				buttonName.addEventListener(ev, fn, false);
 			},
-			// Video Event Handlers
+			/**** Video event listeners ****/
+			/**** Also called from swf through EsternalInterface ****/
+			//Event handler for loadedmetadata event.
+			//loadedmetadata == readystate 1(HAVE_METADATA), fired when preload attribute set "metadata".
+			loadedmetadataListener: function () {
+				if (useHTML5) {
+					duration = this.duration;
+					currentTime = this.currentTime;
+				}
+				if (timeDisplay) {
+					timeDisplay.innerHTML = p.secToMMSS(currentTime) + " / " + p.secToMMSS(duration);
+				}
+			},
+			//Event handler for canplay event.
+			//canplay == readystate 4(HAVE_ENOUGH_DATA), fired when preload attribute set "auto".
 			canplayListener: function () {
-				duration = this.duration;
-				currentTime = this.currentTime;
+				if (useHTML5) {
+					duration = this.duration;
+					currentTime = this.currentTime;
+				} else {
+					//TO BE WRITTEN
+				}
 				if (timeDisplay) {
 					timeDisplay.innerHTML = p.secToMMSS(currentTime) + " / " + p.secToMMSS(duration);
 				}
 			},
+			//Event handler for durationchange event.
 			durationchangeLisntener: function () {
-				duration = this.duration;
-				currentTime = this.currentTime;
+				if (useHTML5) {
+					duration = this.duration;
+					currentTime = this.currentTime;
+				} else {
+					//TO BE WRITTEN
+				}
 				if (timeDisplay) {
 					timeDisplay.innerHTML = p.secToMMSS(currentTime) + " / " + p.secToMMSS(duration);
 				}
 			},
+			//Event handler for play event.
 			playListener: function () {
 				pauseButton.style.display = "block";
 				playButton.style.display = "none";
 				isPlaying = true;
 			},
+			//Event handler for pause event.
 			pauseListener: function () {
 				pauseButton.style.display = "none";
 				playButton.style.display = "block";
 				isPlaying = false;
 			},
+			//Event handler for timeupdate event.
 			timeupdateListener: function (time) {
 				if (startFunction !== null) {
 					startFunction();
@@ -183,6 +222,7 @@
 				}
 				timeupdateFunction();
 				if (useHTML5) {
+					duration = this.duration;
 					currentTime = this.currentTime;
 				} else {
 					//TO BE WRITTEN
@@ -198,38 +238,103 @@
 				if (timeDisplay) {
 					timeDisplay.innerHTML = p.secToMMSS(currentTime) + " / " + p.secToMMSS(duration);
 				}
+				if (bufferedBar) {
+					p.updateBufferedBar();
+				}
 			},
+			//Duplicate bufferedBar & update bufferedBar's length, width from buffered TimeRange object
+			updateBufferedBar: function () {
+				if (useHTML5) {
+					var currentBuffered = videoElement.buffered;
+					//If buffered.length (cached data, TimeRange) more than current bufferedBar elements,
+					//duplicate bufferedBar elements as same as buffered objects
+					if (bufferedLength < currentBuffered.length) {
+						var diff = currentBuffered.length - bufferedLength;
+						for (var i = 0; i < diff; i++) {
+							var copy = bufferedBar.cloneNode(true);
+							copy.setAttribute("id", "buffered" + (bufferedLength + i));
+							bufferedBar.parentNode.insertBefore(copy, bufferedBar);
+						}
+						bufferedLength = currentBuffered.length;
+						if (bufferedLength > maxBufferedLength) {
+							maxBufferedLength = bufferedLength;
+						}
+					//If buffered.length less than current bufferedBar elements,
+					//delete unnecessary elements.
+					} else if (bufferedLength > currentBuffered.length) {
+						bufferedLength = currentBuffered.length;
+						for (var i = bufferedLength; i < maxBufferedLength; i++) {
+							var temp = document.getElementById("buffered" + i);
+							temp.parentNode.removeChild(temp);
+						}
+						maxBufferedLength = bufferedLength;
+					}
+					//Set bufferedBar style from start time, and end time.
+					for (var i = 0; i < bufferedLength; i++) {
+						var temp = document.getElementById("buffered" + i);
+						temp.style.left = p.getBufferedLeft(currentBuffered.start(i), duration) + "px";
+						temp.style.width = p.getBufferedWidth(currentBuffered.start(i), currentBuffered.end(i), duration) + "px";
+					}
+				}
+			},
+			/* Get bufferedBar left value from buffered object's start time and duration.
+			 * @param start {Number} buffered.start(index) value in seconds
+			 * @param duration {Number} video.duration
+			 * @return {Number} left value in pixel
+			 */
+			getBufferedLeft: function (start, duration) {
+				return (start / duration) * seekbarWidth | 0;
+			},
+			/* Get bufferedBar width value from buffered object's start time, end time and duration.
+			 * @param start {Number} buffered.start(index) value in seconds
+			 * @param end {Number} buffered.end(index) value in seconds
+			 * @param duration {Number} video.duration
+			 * @return {Number} width value in pixel
+			 */
+			getBufferedWidth: function (start, end, duration) {
+				return ((end - start) / duration) * seekbarWidth | 0;
+			},
+			/* Get currentTime in seconds
+			 * 
+			 */
 			getCurrentTime: function () {
 				if (useHTML5) {
-					currentTime = videoElement.currentTime * playbackRate;
-					getCurrentTime = function () {
-						return currentTime = videoElement.currentTime * playbackRate;
+					currentTime = videoElement.currentTime;
+					p.getCurrentTime = function () {
+						return currentTime = videoElement.currentTime;
 					}
 					return currentTime;
 				} else {
-					currentTime = swf.getCurrentTimeSWF() * playbackRate;
-					getCurrentTime = function () {
-						return currentTime = swf.getCurrentTimeSWF() * playbackRate;
+					currentTime = swf.getCurrentTimeSWF();
+					p.getCurrentTime = function () {
+						return currentTime = swf.getCurrentTimeSWF();
 					}
 					return currentTime;
 				}
 			},
+			/* Get seekHandle left value from currentTime in pixel
+			 * @return {Number} pixel
+			 */
 			getSeekHandleLeft: function () {
-				return ((currentTime / duration) * seekbarWidth - seekOffset);
+				return ((currentTime / duration) * seekbarWidth - seekOffset) | 0;
 			},
+			/* Get progressBar width value from currentTime in pixel.
+			 * @return {Number} pixel
+			 */
 			getProgressBarWidth: function () {
-				return ((currentTime / duration) * seekbarWidth);
+				return ((currentTime / duration) * seekbarWidth) | 0;
 			},
+			/**** Mouse/Touch event handlers ****/
+			//click/touchend event handler for playButton
 			clickPlay: function () {
 				p.play();
 			},
+			//click/touchend event handler for pauseButton
 			clickPause: function () {
 				p.pause();
 			},
+			//mousedown/touchstart event handler for seekbar
 			mousedownSeekbar: function (e) {
-				if (!isPlaying) {
-					p.clickPlay();
-				}
 				isSeeking = true;
 				var temp;
 				seekbarX = seekbar.getBoundingClientRect().left;
@@ -255,7 +360,9 @@
 					window.addEventListener("mouseup", p.mouseleaveWindow, false);
 				}
 			},
+			//mousemove/touchmove eventhandler for seekbar
 			mousemoveWindow: function (e) {
+				e.preventDefault();
 				var temp;
 				if (hasTouchEvent) {
 					temp = e.touches[0].pageX - seekbarX;
@@ -271,10 +378,11 @@
 					}
 				}
 			},
+			//mouseleave,mouseup/touchend event handler for seekbar
 			mouseleaveWindow: function (e) {
 				var temp, targetTime;
 				if (hasTouchEvent) {
-					temp = e.touches[0].pageX - seekbarX;
+					temp = e.changedTouches[0].pageX - seekbarX;
 				} else {
 					temp = e.pageX - seekbarX;
 				}
@@ -295,9 +403,11 @@
 				}
 				isSeeking = false;
 			},
+			//Play video (Use clickPlay for event handler)
 			play: function () {
 				if (useHTML5) {
 					videoElement.play();
+					//Self-defining function pattern. At the first time called, override itself without unused codes.
 					p.play = function () {
 						videoElement.play();
 					}
@@ -308,6 +418,7 @@
 					}
 				}
 			},
+			//Pause video (Use clickPause for event handler)
 			pause: function () {
 				if (useHTML5) {
 					videoElement.pause();
@@ -321,11 +432,20 @@
 					}
 				}
 			},
+			/* Seek video
+			 * @param targetTime {Number} target time in seconds
+			 */
 			seek: function (targetTime) {
 				if (useHTML5) {
 					videoElement.currentTime = targetTime;
+					if (!isPlaying) {
+						p.clickPlay();
+					}
 					p.seek = function (targetTime) {
 						videoElement.currentTime = targetTime;
+						if (!isPlaying) {
+							p.clickPlay();
+						}
 					}
 				} else {
 					objectElement.seekSWF(targetTime);
@@ -378,7 +498,7 @@
 			 * @return {Boolean} if available, then true
 			 */
 			hasTouchEvent: function () {
-				return (window.ontouchstart) ? true : false;
+				return (window.ontouchstart !== undefined) ? true : false;
 			},
 			/* Convert seconds value into "MM:SS" string
 			 * @param {Number} seconds
