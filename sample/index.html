@@ -9,6 +9,9 @@
 	<link rel="stylesheet" href="sample.css" type="text/css">
 	<script type="text/javascript" src="../src/yavideo5.js"></script>
 	<script type="text/javascript">
+		//Video player object (instance) MUST BE a global object or an object that reachable from global scope.
+		//Because, in case use Flash fallback, Flach calls video player's methods through ExternalInterface.
+		var videoPlayer;
 		window.onload = function () {
 			var config = {
 				autoplay: false,
@@ -37,19 +40,22 @@
 					webm: "wd.webm",
 					//ogv: "sol.ogg"
 				},
-				//flashVideo:"example.mp4",
-				deleteUnusedElement: true
+				flashVideo:"example.mp4",
+				deleteUnusedElement: true,
+				//Variable name of you created (new-ed) player. (at this case, "videoPlayer")
+				varName: "videoPlayer"
 			};
-			var videoPlayer = new YAVideo5(config);
+			//
+			videoPlayer = new YAVideo5(config);
 		}
 	</script>
 </head>
 <body>
 	<div id="video_wrapper">
 		<video id="video_player">
-			<!-- In common usage, Object element is written as a child of Video element,
-				because modern browsers which support Video element feature can automatically IGNORE the child elements for fallback usage.
-				But, for some cases if you need Object element on modern browser,
+			<!-- In common usage, Object element is written as a child of Video element.
+				Because modern browsers that support Video element feature can automatically IGNORE the child elements for fallback usage.
+				But, in some cases if you need Object element on modern browser,
 				for example, you have HTTP Live Streaming (playable on iOS/Android by Video element, NOT on PC browser)
 				and HTTP Dynamic Streaming (playable on Flash),
 				then you need to set Object elements as a sibling element, not a child element.

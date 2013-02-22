@@ -32,11 +32,15 @@
 		fullScreenTarget = config.fullScreenTarget || null;
 		fullScreenControls = config.fullScreenControls || false;
 		deleteUnusedElement = config.deleteUnusedElement || false;
+		varName = config.varName || null;
 		//Initializing flow
 		p.checkSource().setSeekbar().setBufferedBar().setButtons().initEvents();
 	}
 		//If the UA support HTML5 Video && the config has playable source available, then true. 
 	var useHTML5,
+		//Variable (instance) name of you created (new-ed). This variable is necessary for Flash fallback
+		//in order to detect the player from Flash's script to execute the player's JavaScript methods through ExternalInterface.
+		varName,
 		deleteUnusedElement,
 		autoplay, preload, loop, muted, poster, duration, currentTime, playbackRate = 1,
 		isPlaying, isSeeking, isFullScreen, hasTouchEvent, bufferedLength = 1, maxBufferedLength = 1,
@@ -161,8 +165,8 @@
 				playbackRate = videoElement.defaultPlaybackRate;
 				return this;
 			},
-			enableButton: function (buttonName, ev, fn) {
-				buttonName.addEventListener(ev, fn, false);
+			initFlash: function () {
+				
 			},
 			/**** Video event listeners ****/
 			/**** Also called from swf through EsternalInterface ****/
@@ -312,6 +316,12 @@
 					return currentTime;
 				}
 			},
+			/* Get video duration in seconds
+			 * 
+			 */
+			getDuration: function () {
+				
+			},
 			/* Get seekHandle left value from currentTime in pixel
 			 * @return {Number} pixel
 			 */
@@ -403,6 +413,12 @@
 				}
 				isSeeking = false;
 			},
+			clickFF: function () {
+				
+			},
+			clickRW: function () {
+				
+			},
 			//Play video (Use clickPlay for event handler)
 			play: function () {
 				if (useHTML5) {
@@ -454,6 +470,74 @@
 					}
 				}
 			},
+			/* Execute custom function at the time video starts
+			 * 
+			 */
+			onStart: function (fn) {
+				
+			},
+			/* Execute custom function while video playing
+			 * 
+			 */
+			onTimeUpdate: function (fn) {
+				
+			},
+			/* Execute custom function at the time video ends
+			 * 
+			 */
+			onComplete: function (fn) {
+				
+			},
+			/* Set desired element to fullscreen
+			 * 
+			 */
+			requestFullScreen: function (targetElement) {
+				
+			},
+			/* Exit fullscreen
+			 * 
+			 */
+			cancelFullScreen: function () {
+				
+			},
+			/* Set video's volume value
+			 *
+			 */
+			setVolume: function (volume) {
+				
+			},
+			/* Get video's volume value
+			 * 
+			 */
+			getVolume: function () {
+				
+			},
+			/* Execute function at desired video time
+			 * @param targetTime {Number} target time in seconds
+			 * @param fn {Function} callback function
+			 */
+			when: function (targetTime, fn) {
+				//TO BE WRITTEN
+			},
+			/* Enable button, seekbar and UI elements
+			 * 
+			 */
+			enableButton: function (buttonName) {
+				buttonName.addEventListener(ev, fn, false);
+			},
+			/* Disable button, seekbar and UI elements
+			 * 
+			 */
+			disableButton: function (buttonName) {
+				buttonName.addEventListener(ev, fn, false);
+			},
+			/* Change playbackRate value
+			 * 
+			 */
+			changePlaybackRate: function (playbackRate) {
+				
+			},
+			
 			/* Convert file extension to MIME type.
 			 * @param {String} extension File extension
 			 * @return {String} MIME Type
@@ -494,7 +578,7 @@
 					return false;
 				}
 			},
-			/* Determine touchevent available
+			/* Detect touchevent availablility
 			 * @return {Boolean} if available, then true
 			 */
 			hasTouchEvent: function () {
@@ -505,7 +589,7 @@
 			 * @return {String} "MM:SS" string
 			 */
 			secToMMSS: function (sec) {
-				//Convert argument into a integer value in case if Infinity, NaN etc.
+				// | 0 means convert any type of argument into a integer value such as String, Infinity, NaN etc.
 				var s = sec | 0;
 				var seconds = s % 60;
 				var minutes = s / 60 | 0;
