@@ -7,32 +7,34 @@
 			throw new Error("new YAVideo5(): Invalid argument. Argument must be an Object");
 		}
 		//Set variables from config object. If not specified, then set default (|| value).
-		autoplay = config.autoplay || false;
-		preload = config.preload || "metadata";
-		loop = config.loop || false;
-		muted = config.muted || false;
-		poster = config.poster || "";
-		html5Video = config.html5Video || null;
-		flashVideo = config.flashVideo || null;
-		videoElement = config.videoElement || null;
-		objectElement = config.objectElement || null;
-		playButton = config.playButton || null;
-		pauseButton = config.pauseButton || null;
-		forwardButton = config.forwardButton || null;
-		rewindButton = config.rewindButton || null;
-		seekbar = config.seekbar || null;
-		seekHandle = config.seekHandle || null;
-		progressBar = config.progressBar || null;
-		bufferedBar = config.bufferedBar || null;
-		currentTimeDisplay = config.currentTimeDisplay || null;
-		durationDisplay = config.durationDisplay || null;
-		remainingTimeDisplay = config.remainingTimeDisplay || null;
-		timeDisplay = config.timeDisplay || null;
-		fullScreenButton = config.fullScreenButton || null;
-		fullScreenTarget = config.fullScreenTarget || null;
-		fullScreenControls = config.fullScreenControls || false;
-		deleteUnusedElement = config.deleteUnusedElement || false;
-		varName = config.varName || null;
+		autoplay = config["autoplay"] || false;
+		preload = config["preload"] || "metadata";
+		loop = config["loop"] || false;
+		muted = config["muted"] || false;
+		poster = config["poster"] || "";
+		html5Video = config["html5Video"] || null;
+		flashVideo = config["flashVideo"] || null;
+		videoElement = config["videoElement"] || null;
+		objectElement = config["objectElement"] || null;
+		playButton = config["playButton"] || null;
+		pauseButton = config["pauseButton"] || null;
+		forwardButton = config["forwardButton"] || null;
+		rewindButton = config["rewindButton"] || null;
+		forwardTime = config["forwardTime"] || 30;
+		rewindTime = config["rewindTime"] || 30;
+		seekbar = config["seekbar"] || null;
+		seekHandle = config["seekHandle"] || null;
+		progressBar = config["progressBar"] || null;
+		bufferedBar = config["bufferedBar"] || null;
+		currentTimeDisplay = config["currentTimeDisplay"] || null;
+		durationDisplay = config["durationDisplay"] || null;
+		remainingTimeDisplay = config["remainingTimeDisplay"] || null;
+		timeDisplay = config["timeDisplay"] || null;
+		fullScreenButton = config["fullScreenButton"] || null;
+		fullScreenTarget = config["fullScreenTarget"] || null;
+		fullScreenControls = config["fullScreenControls"] || false;
+		deleteUnusedElement = config["deleteUnusedElement"] || false;
+		insName = config["insName"] || null;
 		//Initializing flow
 		p.checkSource().setSeekbar().setBufferedBar().setButtons().initEvents();
 	}
@@ -64,11 +66,14 @@
 		flashVideo,
 		//DOM Elements
 		videoElement, objectElement, playButton, pauseButton, forwardButton, rewindButton, seekbar, seekHandle, progressBar,
-		currentTimeDisplay, durationDisplay, remainingTimeDisplay, timeDisplay, fullScreenButton, fullScreenTarget,
+		currentTimeDisplay, durationDisplay, remainingTimeDisplay, timeDisplay,
+		fullScreenButton, fullScreenTarget,
 		//Show browser built-in controller on fullscreen, then true.
 		fullScreenControls,
 		//Seekbar related vars
 		seekbarWidth, handleWidth, seekOffset, seekbarX,
+		//Forward & Rewind time in seconds
+		forwardTime, rewindTime,
 		//Callback store
 		startFunction = function () {}, timeupdateFunction = function () {}, completeFunction = function () {},
 		//prototype
@@ -135,6 +140,8 @@
 				if (playButton) playButton.addEventListener(clickEvent, p.clickPlay, false);
 				if (pauseButton) pauseButton.addEventListener(clickEvent, p.clickPause, false);
 				if (seekbar) seekbar.addEventListener(mousedownEvent, p.mousedownSeekbar, false);
+				if (forwardButton) forwardButton.addEventListener(clickEvent, p.clickForward, false);
+				if (rewindButton) rewindButton.addEventListener(clickEvent, p.clickRewind, false);
 				return this;
 			},
 			//Initialize
@@ -176,10 +183,13 @@
 				if (useHTML5) {
 					duration = this.duration;
 					currentTime = this.currentTime;
+				} else {
+					
 				}
-				if (timeDisplay) {
-					timeDisplay.innerHTML = p.secToMMSS(currentTime) + " / " + p.secToMMSS(duration);
-				}
+				if (timeDisplay) timeDisplay.innerHTML = p.secToMMSS(currentTime) + " / " + p.secToMMSS(duration);
+				if (currentTimeDisplay) currentTimeDisplay.innerHTML = p.secToMMSS(currentTime);
+				if (durationDisplay) durationDisplay.innerHTML = p.secToMMSS(duration);
+				if (remainingTimeDisplay) remainingTimeDisplay.innerHTML = "-" + p.secToMMSS(duration - currentTime);
 			},
 			//Event handler for canplay event.
 			//canplay == readystate 4(HAVE_ENOUGH_DATA), fired when preload attribute set "auto".
@@ -190,33 +200,22 @@
 				} else {
 					//TO BE WRITTEN
 				}
-				if (timeDisplay) {
-					timeDisplay.innerHTML = p.secToMMSS(currentTime) + " / " + p.secToMMSS(duration);
-				}
+				if (timeDisplay) timeDisplay.innerHTML = p.secToMMSS(currentTime) + " / " + p.secToMMSS(duration);
+				if (currentTimeDisplay) currentTimeDisplay.innerHTML = p.secToMMSS(currentTime);
+				if (durationDisplay) durationDisplay.innerHTML = p.secToMMSS(duration);
+				if (remainingTimeDisplay) remainingTimeDisplay.innerHTML = "-" + p.secToMMSS(duration - currentTime);
 			},
 			//Event handler for durationchange event.
-			durationchangeLisntener: function () {
+			durationchangeListener: function () {
 				if (useHTML5) {
 					duration = this.duration;
 					currentTime = this.currentTime;
 				} else {
 					//TO BE WRITTEN
 				}
-				if (timeDisplay) {
-					timeDisplay.innerHTML = p.secToMMSS(currentTime) + " / " + p.secToMMSS(duration);
-				}
-			},
-			//Event handler for play event.
-			playListener: function () {
-				pauseButton.style.display = "block";
-				playButton.style.display = "none";
-				isPlaying = true;
-			},
-			//Event handler for pause event.
-			pauseListener: function () {
-				pauseButton.style.display = "none";
-				playButton.style.display = "block";
-				isPlaying = false;
+				if (timeDisplay) timeDisplay.innerHTML = p.secToMMSS(currentTime) + " / " + p.secToMMSS(duration);
+				if (durationDisplay) durationDisplay.innerHTML = p.secToMMSS(duration);
+				if (remainingTimeDisplay) remainingTimeDisplay.innerHTML = "-" + p.secToMMSS(duration - currentTime);
 			},
 			//Event handler for timeupdate event.
 			timeupdateListener: function (time) {
@@ -239,11 +238,50 @@
 						progressBar.style.width = p.getProgressBarWidth() + "px";
 					}
 				}
-				if (timeDisplay) {
-					timeDisplay.innerHTML = p.secToMMSS(currentTime) + " / " + p.secToMMSS(duration);
+				if (timeDisplay) timeDisplay.innerHTML = p.secToMMSS(currentTime) + " / " + p.secToMMSS(duration);
+				if (currentTimeDisplay) currentTimeDisplay.innerHTML = p.secToMMSS(currentTime);
+				if (remainingTimeDisplay) remainingTimeDisplay.innerHTML = "-" + p.secToMMSS(duration - currentTime);
+				if (bufferedBar) p.updateBufferedBar();
+			},
+			//Event handler for play event.
+			playListener: function () {
+				pauseButton.style.display = "block";
+				playButton.style.display = "none";
+				isPlaying = true;
+			},
+			//Event handler for pause event.
+			pauseListener: function () {
+				pauseButton.style.display = "none";
+				playButton.style.display = "block";
+				isPlaying = false;
+			},
+			//Event handler for ended event.
+			endedListener: function () {
+				if (completeFunction !== null) {
+					completeFunction();
+					completeFunction = null;
 				}
-				if (bufferedBar) {
-					p.updateBufferedBar();
+			},
+			//Event handler for error event.
+			errorListener: function (e) {
+				switch (e.target.error.code) {
+					case 1:
+						throw new Error("MEDIA_ERR_ABORTED");
+						break;
+					case 2:
+						throw new Error("MEDIA_ERR_NETWORK");
+						break;
+					case 3:
+						throw new Error("MEDIA_ERR_DECODE");
+						break;
+					case 4:
+						throw new Error("MEDIA_ERR_SRC_NOT_SUPPORTED");
+						break;
+					case 5:
+						throw new Error("MEDIA_ERR_ENCRYPTED");
+						break;
+					default:
+						throw new Error("Unknown error occurred. The error code is " + e.target.error.code);
 				}
 			},
 			//Duplicate bufferedBar & update bufferedBar's length, width from buffered TimeRange object
@@ -303,17 +341,9 @@
 			 */
 			getCurrentTime: function () {
 				if (useHTML5) {
-					currentTime = videoElement.currentTime;
-					p.getCurrentTime = function () {
-						return currentTime = videoElement.currentTime;
-					}
-					return currentTime;
+					return currentTime = videoElement.currentTime;
 				} else {
-					currentTime = swf.getCurrentTimeSWF();
-					p.getCurrentTime = function () {
-						return currentTime = swf.getCurrentTimeSWF();
-					}
-					return currentTime;
+					return currentTime = swf.getCurrentTimeSWF();
 				}
 			},
 			/* Get video duration in seconds
@@ -404,48 +434,41 @@
 				targetTime = duration * (temp / seekbarWidth);
 				p.seek(targetTime);
 				if (hasTouchEvent) {
-					window.removeEventListener("touchmove", p.mousemoveWindow);
-					window.removeEventListener("touchend", p.mouseleaveWindow);
+					window.removeEventListener("touchmove", p.mousemoveWindow, false);
+					window.removeEventListener("touchend", p.mouseleaveWindow, false);
 				} else {
-					window.removeEventListener("mousemove", p.mousemoveWindow);
-					window.removeEventListener("mouseleave", p.mouseleaveWindow);
-					window.removeEventListener("mouseup", p.mouseleaveWindow);
+					window.removeEventListener("mousemove", p.mousemoveWindow, false);
+					window.removeEventListener("mouseleave", p.mouseleaveWindow, false);
+					window.removeEventListener("mouseup", p.mouseleaveWindow, false);
 				}
 				isSeeking = false;
 			},
-			clickFF: function () {
-				
+			//click event handler for forwardButton
+			clickForward: function () {
+				p.seek(currentTime + forwardTime);
 			},
-			clickRW: function () {
-				
+			//click event handler for rewindButton
+			clickRewind: function () {
+				var targetTime = currentTime - rewindTime;
+				if (targetTime <= 0) {
+					targetTime = 0;
+				}
+				p.seek(targetTime);
 			},
 			//Play video (Use clickPlay for event handler)
 			play: function () {
 				if (useHTML5) {
 					videoElement.play();
-					//Self-defining function pattern. At the first time called, override itself without unused codes.
-					p.play = function () {
-						videoElement.play();
-					}
 				} else {
 					objectElement.playSWF();
-					p.play = function () {
-						objectElement.playSWF();
-					}
 				}
 			},
 			//Pause video (Use clickPause for event handler)
 			pause: function () {
 				if (useHTML5) {
 					videoElement.pause();
-					p.pause = function () {
-						videoElement.pause();
-					}
 				} else {
 					objectElement.pauseSWF();
-					p.pause = function () {
-						objectElement.pauseSWF();
-					}
 				}
 			},
 			/* Seek video
@@ -457,36 +480,27 @@
 					if (!isPlaying) {
 						p.clickPlay();
 					}
-					p.seek = function (targetTime) {
-						videoElement.currentTime = targetTime;
-						if (!isPlaying) {
-							p.clickPlay();
-						}
-					}
 				} else {
 					objectElement.seekSWF(targetTime);
-					p.seek = function (targetTime) {
-						objectElement.seekSWF(targetTime);
-					}
 				}
 			},
 			/* Execute custom function at the time video starts
-			 * 
+			 * @param fn {Function} function
 			 */
 			onStart: function (fn) {
-				
+				startFunction = fn;
 			},
 			/* Execute custom function while video playing
-			 * 
+			 * @param fn {Function} function
 			 */
 			onTimeUpdate: function (fn) {
-				
+				timeupdateFunction = fn;
 			},
 			/* Execute custom function at the time video ends
-			 * 
+			 * @param fn {Function} function
 			 */
 			onComplete: function (fn) {
-				
+				completeFunction = fn;
 			},
 			/* Set desired element to fullscreen
 			 * 
@@ -523,13 +537,13 @@
 			 * 
 			 */
 			enableButton: function (buttonName) {
-				buttonName.addEventListener(ev, fn, false);
+				//buttonName.addEventListener(ev, fn, false);
 			},
 			/* Disable button, seekbar and UI elements
 			 * 
 			 */
 			disableButton: function (buttonName) {
-				buttonName.addEventListener(ev, fn, false);
+				//buttonName.addEventListener(ev, fn, false);
 			},
 			/* Change playbackRate value
 			 * 
@@ -589,7 +603,6 @@
 			 * @return {String} "MM:SS" string
 			 */
 			secToMMSS: function (sec) {
-				// | 0 means convert any type of argument into a integer value such as String, Infinity, NaN etc.
 				var s = sec | 0;
 				var seconds = s % 60;
 				var minutes = s / 60 | 0;
@@ -604,3 +617,5 @@
 		}
 	return YAVideo5;
 })();
+
+window["YAVideo5"] = YAVideo5;

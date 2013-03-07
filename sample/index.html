@@ -22,8 +22,10 @@
 				objectElement: document.getElementById("external_player"),
 				playButton: document.getElementById("play_button"),
 				pauseButton: document.getElementById("pause_button"),
-				forwardButton: null,
-				rewindButton: null,
+				forwardButton: document.getElementById("forward_button"),
+				rewindButton: document.getElementById("rewind_button"),
+				forwardTime: 10,
+				rewindTime: 10,
 				seekbar: document.getElementById("seekbar"),
 				seekHandle: document.getElementById("seek_handle"),
 				progressBar: document.getElementById("progress_bar"),
@@ -42,8 +44,8 @@
 				},
 				flashVideo:"example.mp4",
 				deleteUnusedElement: true,
-				//Variable name of you created (new-ed) player. (at this case, "videoPlayer")
-				varName: "videoPlayer"
+				//Instance name of you created (new-ed) player. (at this case, "videoPlayer")
+				insName: "videoPlayer"
 			};
 			//
 			videoPlayer = new YAVideo5(config);
@@ -75,14 +77,17 @@
 			<param name="wmode" value="transparent">
 		</object>
 		<div id="controller_set">
+			<div class="button" id="rewind_button"></div>
 			<div class="button" id="play_button"></div>
 			<div class="button" id="pause_button"></div>
+			<div class="button" id="forward_button"></div>
 			<div id="time">00:00 / 00:00</div>
 			<div id="seekbar">
 				<div id="seek_background"></div>
 				<div class="buffered_bar"></div>
 				<div id="progress_bar"></div>
 				<div id="seek_handle"></div>
+				<div id="time_tips">00:00</div>
 			</div>
 		</div>
 	</div>
