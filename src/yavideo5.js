@@ -12,6 +12,7 @@
 		loop = config["loop"] || false;
 		muted = config["muted"] || false;
 		poster = config["poster"] || "";
+		controls = config["controls"] || false;
 		html5Video = config["html5Video"] || null;
 		flashVideo = config["flashVideo"] || null;
 		videoElement = config["videoElement"] || null;
@@ -37,6 +38,32 @@
 		insName = config["insName"] || null;
 		//Initializing flow
 		p.checkSource().setSeekbar().setBufferedBar().setButtons().initEvents();
+		//Public functions
+		this["getCurrentTime"] = p.getCurrentTime;
+		this["getDuration"] = p.getDuration;
+		this["play"] = p.play;
+		this["pause"] = p.pause;
+		this["seek"] = p.seek;
+		this["onStart"] = p.onStart;
+		this["onTimeUpdate"] = p.onTimeUpdate;
+		this["onComplete"] = p.onComplete;
+		this["requestFullScreen"] = p.requestFullScreen;
+		this["cancelFullScreen"] = p.cancelFullScreen;
+		this["setVolume"] = p.setVolume;
+		this["getVolume"] = p.getVolume;
+		this["when"] = p.when;
+		this["changePlaybackRate"] = p.changePlaybackRate;
+		//Set public so that swf can call throught ExternalInterface
+		if (!useHTML5) {
+			//this["loadedmetadataListener"] = p.loadedmetadataListener;
+			//this["canplayListener"] = p.canplayListener;
+			this["durationchangeListener"] = p.durationchangeListener;
+			this["timeupdateListener"] = p.timeupdateListener;
+			this["playListener"] = p.playListener;
+			this["pauseListener"] = p.pauseListener;
+			this["endedListener"] = p.endedListener;
+			this["updateBufferedBar"] = p.updateBufferedBar;
+		}
 	}
 		//If the UA support HTML5 Video && the config has playable source available, then true. 
 	var useHTML5,
@@ -44,7 +71,8 @@
 		//in order to detect the player from Flash's script to execute the player's JavaScript methods through ExternalInterface.
 		varName,
 		deleteUnusedElement,
-		autoplay, preload, loop, muted, poster, duration, currentTime, playbackRate = 1,
+		//MediaElement related variables
+		autoplay, preload, loop, muted, poster, controls, duration, currentTime, playbackRate = 1,
 		isPlaying, isSeeking, isFullScreen, hasTouchEvent, bufferedLength = 1, maxBufferedLength = 1,
 		//Current source from multiple sources of html5Video var.
 		src,
@@ -173,7 +201,23 @@
 				return this;
 			},
 			initFlash: function () {
-				
+				var useBufferedBar = (bufferedBar) ? true : false;
+				//Settings object for swf
+				var settings = {
+					src: flashVideo,
+					ins: insName,
+					autoplay: autoplay,
+					loop: loop,
+					bufferedBar: useBufferedBar
+				}
+				//Check until swf ready for ExternalInterface.addCallback
+				var si = setInterval(function () {
+					if (objectElement.initSWF) {
+						//Initialize swf
+						objectElement.initSWF(settings);
+						clearInterval(si);
+					}
+				}, 10);
 			},
 			/**** Video event listeners ****/
 			/**** Also called from swf through EsternalInterface ****/
@@ -206,19 +250,19 @@
 				if (remainingTimeDisplay) remainingTimeDisplay.innerHTML = "-" + p.secToMMSS(duration - currentTime);
 			},
 			//Event handler for durationchange event.
-			durationchangeListener: function () {
+			durationchangeListener: function (time) {
 				if (useHTML5) {
 					duration = this.duration;
 					currentTime = this.currentTime;
 				} else {
-					//TO BE WRITTEN
+					duration = time;
 				}
 				if (timeDisplay) timeDisplay.innerHTML = p.secToMMSS(currentTime) + " / " + p.secToMMSS(duration);
 				if (durationDisplay) durationDisplay.innerHTML = p.secToMMSS(duration);
 				if (remainingTimeDisplay) remainingTimeDisplay.innerHTML = "-" + p.secToMMSS(duration - currentTime);
 			},
 			//Event handler for timeupdate event.
-			timeupdateListener: function (time) {
+			timeupdateListener: function (time, percent) {
 				if (startFunction !== null) {
 					startFunction();
 					startFunction = null;
@@ -227,8 +271,11 @@
 				if (useHTML5) {
 					duration = this.duration;
 					currentTime = this.currentTime;
+					if (bufferedBar) {
+						p.updateBufferedBar();
+					}
 				} else {
-					//TO BE WRITTEN
+					currentTime = time;
 				}
 				if (!isSeeking) {
 					if (seekHandle) {
@@ -241,7 +288,6 @@
 				if (timeDisplay) timeDisplay.innerHTML = p.secToMMSS(currentTime) + " / " + p.secToMMSS(duration);
 				if (currentTimeDisplay) currentTimeDisplay.innerHTML = p.secToMMSS(currentTime);
 				if (remainingTimeDisplay) remainingTimeDisplay.innerHTML = "-" + p.secToMMSS(duration - currentTime);
-				if (bufferedBar) p.updateBufferedBar();
 			},
 			//Event handler for play event.
 			playListener: function () {
@@ -264,28 +310,33 @@
 			},
 			//Event handler for error event.
 			errorListener: function (e) {
-				switch (e.target.error.code) {
-					case 1:
-						throw new Error("MEDIA_ERR_ABORTED");
-						break;
-					case 2:
-						throw new Error("MEDIA_ERR_NETWORK");
-						break;
-					case 3:
-						throw new Error("MEDIA_ERR_DECODE");
-						break;
-					case 4:
-						throw new Error("MEDIA_ERR_SRC_NOT_SUPPORTED");
-						break;
-					case 5:
-						throw new Error("MEDIA_ERR_ENCRYPTED");
-						break;
-					default:
-						throw new Error("Unknown error occurred. The error code is " + e.target.error.code);
+				if (e.target.error !== null) {
+					switch (e.target.error.code) {
+						case 1:
+							throw new Error("MEDIA_ERR_ABORTED");
+							break;
+						case 2:
+							throw new Error("MEDIA_ERR_NETWORK");
+							break;
+						case 3:
+							throw new Error("MEDIA_ERR_DECODE");
+							break;
+						case 4:
+							throw new Error("MEDIA_ERR_SRC_NOT_SUPPORTED");
+							break;
+						case 5:
+							throw new Error("MEDIA_ERR_ENCRYPTED");
+							break;
+						default:
+							throw new Error("Unknown error occurred. The error code is " + e.target.error.code);
+					}
 				}
 			},
-			//Duplicate bufferedBar & update bufferedBar's length, width from buffered TimeRange object
-			updateBufferedBar: function () {
+			/* For HTML5: Duplicate bufferedBar & update bufferedBar's length, width from buffered TimeRange object
+			 * For Flash: Update bufferdBar's width from bytesLoaded/bytesTotal
+			 * @param percent Percent value (0-100) from swf
+			 */
+			updateBufferedBar: function (percent) {
 				if (useHTML5) {
 					var currentBuffered = videoElement.buffered;
 					//If buffered.length (cached data, TimeRange) more than current bufferedBar elements,
@@ -317,6 +368,8 @@
 						temp.style.left = p.getBufferedLeft(currentBuffered.start(i), duration) + "px";
 						temp.style.width = p.getBufferedWidth(currentBuffered.start(i), currentBuffered.end(i), duration) + "px";
 					}
+				} else {
+					bufferedBar.style.width = percent + "%";
 				}
 			},
 			/* Get bufferedBar left value from buffered object's start time and duration.
@@ -350,7 +403,7 @@
 			 * 
 			 */
 			getDuration: function () {
-				
+				return duration;
 			},
 			/* Get seekHandle left value from currentTime in pixel
 			 * @return {Number} pixel
@@ -506,32 +559,78 @@
 			 * 
 			 */
 			requestFullScreen: function (targetElement) {
-				
+				if (targetElement.requestFullscreen) {
+					targetElement.requestFullscreen();
+				} else if (targetElement.webkitRequestFullScreen) {
+					targetElement.webkitRequestFullScreen();
+				} else if (targetElement.webkitEnterFullScreen) {
+					targetElement.webkitEnterFullScreen();
+				} else if (targetElement.mozRequestFullScreen) {
+					targetElement.mozRequestFullScreen();
+				} else {
+					
+				}
 			},
 			/* Exit fullscreen
 			 * 
 			 */
 			cancelFullScreen: function () {
-				
+				if (document.cancelFullScreen) {
+					document.cancelFullScreen();
+				} else if (document.webkitCancelFullScreen) {
+					document.webkitCancelFullScreen();
+				} else if (document.mozCancelFullScreen) {
+					document.mozCancelFullScreen();
+				}
 			},
 			/* Set video's volume value
 			 *
 			 */
 			setVolume: function (volume) {
-				
+				if (volume > 1 || volume < 0) {
+					throw new Error("setVolume: volume value must be between 0 to 1.");
+				}
+				if (useHTML5) {
+					videoElement.volume = volume;
+				} else {
+					objectElement.setVolumeSWF(volume);
+				}
 			},
 			/* Get video's volume value
 			 * 
 			 */
 			getVolume: function () {
-				
+				if (useHTML5) {
+					return videoElement.volume;
+				} else {
+					return objectElement.getVolumeSWF();
+				}
 			},
 			/* Execute function at desired video time
+			 * Target time must be in seconds because timeupdate event fires around 3 or 4 times per seconds.
 			 * @param targetTime {Number} target time in seconds
 			 * @param fn {Function} callback function
+			 * @param remove {Boolean} OPTION if you want to remove the callback after fired (fire only once), then true.
 			 */
-			when: function (targetTime, fn) {
-				//TO BE WRITTEN
+			when: function (targetTime, fn, remove) {
+				if (useHTML5) {
+					videoElement.addEventListener("timeupdate", updateListener, false);
+				}
+				var fired = false;
+				function updateListener() {
+					var currentTime = p.getCurrentTime() | 0;
+					if (targetTime == currentTime && fired == false) {
+						fn();
+						fired = true;
+						if (remove) {
+							videoElement.removeEventListener("timeupdate", updateListener, false);
+						}
+						//Set fired flag false 1 second after to fire again at the same time later.
+						setTimeout(function () {
+							fired = false;
+						}, 1000);
+					}
+				}
 			},
 			/* Enable button, seekbar and UI elements
 			 * 
@@ -549,9 +648,10 @@
 			 * 
 			 */
 			changePlaybackRate: function (playbackRate) {
-				
+				if (useHTML5) {
+					videoElement.playbackRate = playbackRate;
+				}
 			},
-			
 			/* Convert file extension to MIME type.
 			 * @param {String} extension File extension
 			 * @return {String} MIME Type
@@ -618,4 +718,5 @@
 	return YAVideo5;
 })();
 
+//Set for Closure Compiler
 window["YAVideo5"] = YAVideo5;

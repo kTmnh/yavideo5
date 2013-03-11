@@ -2,6 +2,7 @@ body {
 	background-color:#000;
 	color:#fff;
 }
+
 /* Wrapper for centering elements included */
 #video_wrapper {
 	width:640px;
@@ -20,8 +21,20 @@ body {
 	display:block;
 }
 
+/* Object element */
+#external_player {
+	position:relative;
+	width:640px;
+	height:360px;
+	margin:0px;
+	padding:0px;
+	/* video element need to set display as block for preventing unexpected bottom margin. */
+	display:block;
+}
+
 /* Controller area */
 #controller_set {
+	cursor:default;
 	position:relative;
 	height:48px;
 	box-shadow:0px 1px 2px #333 inset;

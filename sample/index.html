@@ -36,19 +36,25 @@
 				timeDisplay: document.getElementById("time"),
 				fullScreenButton: null,
 				fullScreenControls: false,
+				/*
 				html5Video:{
 					//m3u8: "example.m3u8",
 					mp4: "wd.mp4",
 					webm: "wd.webm",
 					//ogv: "sol.ogg"
 				},
-				flashVideo:"example.mp4",
+				*/
+				flashVideo:"wd.mp4",
 				deleteUnusedElement: true,
 				//Instance name of you created (new-ed) player. (at this case, "videoPlayer")
 				insName: "videoPlayer"
 			};
 			//
 			videoPlayer = new YAVideo5(config);
+			//videoPlayer.onStart(function () {console.log('onStart')});
+			//videoPlayer.onTimeUpdate(function () {console.log('onTimeUpdate')});
+			//videoPlayer.onComplete(function () {console.log('onComplete')});
+			//videoPlayer.when(3,	function () {console.log('when')});
 		}
 	</script>
 </head>
