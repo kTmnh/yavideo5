@@ -28,6 +28,7 @@ body {
 	height:360px;
 	margin:0px;
 	padding:0px;
+	background-color:#000;
 	/* video element need to set display as block for preventing unexpected bottom margin. */
 	display:block;
 }

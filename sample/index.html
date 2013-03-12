@@ -7,6 +7,9 @@
 	<meta name="format-detection" content="telephone=no">
 	<title>Video Player Sample</title>
 	<link rel="stylesheet" href="sample.css" type="text/css">
+	<!--[if lte IE 8]>
+		<script type="text/javascript" src="../polyfills/eventListener.polyfill.min.js"></script>
+	<![endif]-->
 	<script type="text/javascript" src="../src/yavideo5.js"></script>
 </head>
 <body>
@@ -27,8 +30,8 @@
 			</object>
 			-->
 		</video>
-		<object data="simpleplayer.swf" id="external_player" type="application/x-shockwave-flash">
-			<param name="movie" value="simpleplayer.swf">
+		<object data="osmfplayer.swf" id="external_player" type="application/x-shockwave-flash">
+			<param name="movie" value="osmfplayer.swf">
 			<param name="allowfullscreen" value="true">
 			<param name="allowscriptaccess" value="always">
 			<param name="wmode" value="transparent">
@@ -41,7 +44,7 @@
 			<div id="time">00:00 / 00:00</div>
 			<div id="seekbar">
 				<div id="seek_background"></div>
-				<div class="buffered_bar"></div>
+				<div class="buffered_bar" id="buffered_bar"></div>
 				<div id="progress_bar"></div>
 				<div id="seek_handle"></div>
 				<div id="time_tips">00:00</div>
@@ -68,18 +71,18 @@
 			seekbar: document.getElementById("seekbar"),
 			seekHandle: document.getElementById("seek_handle"),
 			progressBar: document.getElementById("progress_bar"),
-			bufferedBar: document.getElementsByClassName("buffered_bar")[0],
+			bufferedBar: document.getElementById("buffered_bar"),
 			currentTimeDisplay: null,
 			durationDisplay: null,
 			remainingTimeDisplay: null,
 			timeDisplay: document.getElementById("time"),
-			fullScreenButton: null,
-			fullScreenControls: false,
+			//fullScreenButton: null,
+			//fullScreenControls: false,
 			/*
 			html5Video:{
 				//m3u8: "example.m3u8",
 				mp4: "wd.mp4",
-				webm: "wd.webm",
+				webm: "wd.webm"
 				//ogv: "sol.ogg"
 			},
 			*/
@@ -90,10 +93,12 @@
 		};
 		//
 		videoPlayer = new YAVideo5(config);
-		//videoPlayer.onStart(function () {console.log('onStart')});
+		videoPlayer.onStart(function () {console.log('onStart')});
 		//videoPlayer.onTimeUpdate(function () {console.log('onTimeUpdate')});
-		//videoPlayer.onComplete(function () {console.log('onComplete')});
-		//videoPlayer.when(3,	function () {console.log('when')});
+		videoPlayer.onComplete(function () {console.log('onComplete')});
+		videoPlayer.when(3,	function () {console.log('3sec')}, true);
+		videoPlayer.when(7,	function () {console.log('7sec')});
+		videoPlayer.when(8,	function () {console.log('8sec')});
 	</script>
 </body>
 </html>

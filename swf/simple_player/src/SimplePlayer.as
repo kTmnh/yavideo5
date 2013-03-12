@@ -9,7 +9,7 @@ package {
 	import flash.media.Video;
 	import flash.net.NetConnection;
 	import flash.net.NetStream;
-	import flash.system.*;
+	import flash.system.Security;
 	import flash.utils.setInterval;
 	import flash.utils.clearInterval;
 	public class SimplePlayer extends Sprite {

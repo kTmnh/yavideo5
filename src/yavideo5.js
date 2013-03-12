@@ -73,7 +73,9 @@
 		deleteUnusedElement,
 		//MediaElement related variables
 		autoplay, preload, loop, muted, poster, controls, duration, currentTime, playbackRate = 1,
-		isPlaying, isSeeking, isFullScreen, hasTouchEvent, bufferedLength = 1, maxBufferedLength = 1,
+		isPlaying, isSeeking, isFullScreen,
+		hasTouchEvent, lteIE8,
+		bufferedLength = 1, maxBufferedLength = 1,
 		//Current source from multiple sources of html5Video var.
 		src,
 		//File type of current source.
@@ -104,6 +106,8 @@
 		forwardTime, rewindTime,
 		//Callback store
 		startFunction = function () {}, timeupdateFunction = function () {}, completeFunction = function () {},
+		//when() method's time and function store used only for SWF.
+		whenTime = [], whenFuncs = [], whenRemove = [], whenFired = false,
 		//prototype
 		p = this.prototype = {
 			//Check available & playable source
@@ -138,6 +142,8 @@
 						videoElement.parentNode.removeChild(videoElement);
 					}
 				}
+				//Check if the browser is less than or equal to IE 8
+				lteIE8 = p.isLteIE8();
 				return this;
 			},
 			/* Set seekbar vars from elements.
@@ -276,6 +282,21 @@
 					}
 				} else {
 					currentTime = time;
+					//execute when method's function at the set time
+					for (var i = 0; i < whenFuncs.length; i ++) {
+						if ((time | 0) == whenTime[i] && whenFired == false) {
+							whenFuncs[i]();
+							whenFired = true;
+							if (whenRemove[i] == true) {
+								whenTime.splice(i, 1);
+								whenFuncs.splice(i, 1);
+								whenRemove.splice(i, 1);
+							}
+							setTimeout(function () {
+								whenFired = false;
+							}, 1000);
+						}
+					}
 				}
 				if (!isSeeking) {
 					if (seekHandle) {
@@ -434,7 +455,7 @@
 				if (hasTouchEvent) {
 					temp = e.touches[0].pageX - seekbarX;
 				} else {
-					temp = e.pageX - seekbarX;
+					temp = e.clientX - seekbarX;
 				}
 				if (temp > 0 && temp < seekbarWidth) {
 					if (seekHandle) {
@@ -448,9 +469,16 @@
 					window.addEventListener("touchmove", p.mousemoveWindow, false);
 					window.addEventListener("touchend", p.mouseleaveWindow, false);
 				} else {
-					window.addEventListener("mousemove", p.mousemoveWindow, false);
-					window.addEventListener("mouseleave", p.mouseleaveWindow, false);
-					window.addEventListener("mouseup", p.mouseleaveWindow, false);
+					//This and below mouseleaveWindow's same part are the only part for support old IE.
+					if (lteIE8) {
+						document.addEventListener("mousemove", p.mousemoveWindow, false);
+						document.addEventListener("mouseleave", p.mouseleaveWindow, false);
+						document.addEventListener("mouseup", p.mouseleaveWindow, false);
+					} else {
+						window.addEventListener("mousemove", p.mousemoveWindow, false);
+						window.addEventListener("mouseleave", p.mouseleaveWindow, false);
+						window.addEventListener("mouseup", p.mouseleaveWindow, false);
+					}
 				}
 			},
 			//mousemove/touchmove eventhandler for seekbar
@@ -460,7 +488,7 @@
 				if (hasTouchEvent) {
 					temp = e.touches[0].pageX - seekbarX;
 				} else {
-					temp = e.pageX - seekbarX;
+					temp = e.clientX - seekbarX;
 				}
 				if (temp > 0 && temp < seekbarWidth) {
 					if (seekHandle) {
@@ -477,7 +505,7 @@
 				if (hasTouchEvent) {
 					temp = e.changedTouches[0].pageX - seekbarX;
 				} else {
-					temp = e.pageX - seekbarX;
+					temp = e.clientX - seekbarX;
 				}
 				if (temp < 0) {
 					temp = 0;
@@ -490,9 +518,15 @@
 					window.removeEventListener("touchmove", p.mousemoveWindow, false);
 					window.removeEventListener("touchend", p.mouseleaveWindow, false);
 				} else {
-					window.removeEventListener("mousemove", p.mousemoveWindow, false);
-					window.removeEventListener("mouseleave", p.mouseleaveWindow, false);
-					window.removeEventListener("mouseup", p.mouseleaveWindow, false);
+					if (lteIE8) {
+						document.removeEventListener("mousemove", p.mousemoveWindow, false);
+						document.removeEventListener("mouseleave", p.mouseleaveWindow, false);
+						document.removeEventListener("mouseup", p.mouseleaveWindow, false);
+					} else {
+						window.removeEventListener("mousemove", p.mousemoveWindow, false);
+						window.removeEventListener("mouseleave", p.mouseleaveWindow, false);
+						window.removeEventListener("mouseup", p.mouseleaveWindow, false);
+					}
 				}
 				isSeeking = false;
 			},
@@ -622,21 +656,26 @@
 			when: function (targetTime, fn, remove) {
 				if (useHTML5) {
 					videoElement.addEventListener("timeupdate", updateListener, false);
-				}
-				var fired = false;
-				function updateListener() {
-					var currentTime = p.getCurrentTime() | 0;
-					if (targetTime == currentTime && fired == false) {
-						fn();
-						fired = true;
-						if (remove) {
-							videoElement.removeEventListener("timeupdate", updateListener, false);
+					var fired = false;
+					function updateListener() {
+						var currentTime = p.getCurrentTime() | 0;
+						if (targetTime == currentTime && fired == false) {
+							fn();
+							fired = true;
+							if (remove) {
+								videoElement.removeEventListener("timeupdate", updateListener, false);
+							}
+							//Set fired flag false 1 second after to fire again at the same time later.
+							setTimeout(function () {
+								fired = false;
+							}, 1000);
 						}
-						//Set fired flag false 1 second after to fire again at the same time later.
-						setTimeout(function () {
-							fired = false;
-						}, 1000);
 					}
+				} else {
+					//Push time, fn, remove values to when arrays, execute on timeupdateListener.
+					whenTime.push(targetTime);
+					whenFuncs.push(fn);
+					whenRemove.push(remove);
 				}
 			},
 			/* Enable button, seekbar and UI elements
@@ -704,6 +743,13 @@
 			 */
 			hasTouchEvent: function () {
 				return (window.ontouchstart !== undefined) ? true : false;
+			},
+			/* Check if Internet Explorer 8 or older
+			 * @return {Boolean} if IE8 or older, then true.
+			 */
+			isLteIE8: function (ua) {
+				var _ua = ua || navigator.userAgent;
+				return (_ua.match(/MSIE\s[6-8]/) !== null) ? true : false;
 			},
 			/* Convert seconds value into "MM:SS" string
 			 * @param {Number} seconds
