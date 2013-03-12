@@ -7,15 +7,14 @@ package {
 	import org.osmf.events.*;
 	import org.osmf.media.*;
 	import org.osmf.traits.*;
-	public class VideoPlayer extends Sprite {
+	public class OSMFPlayer extends Sprite {
 		private var _settings:Object;
 		private var _ins:String = "";
-		private var _src:String = "";
 		private var _duration:Number = 0;
 		private var mediaPlayerSprite:MediaPlayerSprite = new MediaPlayerSprite();
 		private var displayObject:Object = new Object();
 		//Constructor
-		public function VideoPlayer():void {
+		public function OSMFPlayer():void {
 			ExternalInterface.addCallback("initSWF", init);
 			Security.allowDomain("*");
 			addChild(mediaPlayerSprite);
@@ -52,7 +51,7 @@ package {
 				if (!settings.autoplay) {
 					event.currentTarget.pause();
 				} else {
-					ExternalInterface.call(_ins+".playListener");
+					ExternalInterface.call(_ins + ".playListener");
 				}
 				event.currentTarget.loop = settings.loop;
 			});
@@ -66,12 +65,10 @@ package {
 			ExternalInterface.addCallback("getCurrentTimeSWF", getCurrentTime);
 			ExternalInterface.addCallback("getVolumeSWF", getVolume);
 			ExternalInterface.addCallback("setVolumeSWF", setVolume);
-			//ExternalInterface.addCallback("changeVideoSourceSWF", changeVideoSource);
-			//ExternalInterface.addCallback("changeVideoAndSeekSWF", changeVideoAndSeek);
 		}
 		private function durationChangeListener(event:TimeEvent):void {
 			_duration = mediaPlayerSprite.mediaPlayer.duration;
-			ExternalInterface.call(_ins+".durationchangeListener", _duration);
+			ExternalInterface.call(_ins + ".durationchangeListener", _duration);
 		}
 		private function playStateChangeListener(event:PlayEvent):void {
 			switch (event.playState) {
@@ -126,50 +123,6 @@ package {
 		private function getVolume():Number {
 			return mediaPlayerSprite.mediaPlayer.volume;
 		}
-		/*
-		//ビデオのソースを差し替える
-		private function changeVideoSource(src:String):void {
-			var manifestElement:F4MElement = new F4MElement();
-			mediaPlayerSprite.media = null;
-			manifestElement.resource = new URLResource(src);
-			mediaPlayerSprite.media = manifestElement;
-			//再度スムージングを有効にする
-			mediaPlayerSprite.media.addEventListener(MediaElementEvent.TRAIT_ADD,
-				function(event:MediaElementEvent):void {
-					if (event.traitType == MediaTraitType.DISPLAY_OBJECT) {
-						var displayObject:Object = (mediaPlayerSprite.media.getTrait(MediaTraitType.DISPLAY_OBJECT) as DisplayObjectTrait).displayObject;
-						displayObject.smoothing = true;
-					}
-				}
-			);
-		}
-		//ビデオのソースを差し替え、指定した時間にシークして再生する
-		//引数：URL, ターゲット時間
-		private function changeVideoAndSeek(src:String, time:Number):void {
-			var targetTime:Number = Math.floor(time);
-			changeVideoSource(src);
-			mediaPlayerSprite.mediaPlayer.addEventListener(MediaPlayerStateChangeEvent.MEDIA_PLAYER_STATE_CHANGE, mediaPlayerStateChangeEventListener);
-			function mediaPlayerStateChangeEventListener (event:MediaPlayerStateChangeEvent):void {
-				//ビデオのバッファリングが終わり、再生が始まったら、シークする
-				if (event.state == "playing") {
-					mediaPlayerSprite.mediaPlayer.seek(targetTime);
-					mediaPlayerSprite.mediaPlayer.removeEventListener(MediaPlayerStateChangeEvent.MEDIA_PLAYER_STATE_CHANGE, mediaPlayerStateChangeEventListener);
-				}
-			}
-		}
-		*/
-		/*
-		private function requestFullScreen(e:MouseEvent):void {
-			stage.displayState = StageDisplayState.FULL_SCREEN;
-		}
-		private function cancelFullScreen():void {
-			try {
-				stage.displayState = StageDisplayState.NORMAL;
-			} catch (e:Error) {
-				//ExternalInterface.call("alert", e.message+""+e.name);
-			}
-		}
-		*/
 		//Detect if the video source is F4M (HTTP Dynamic Streaming) from url string
 		private function isF4M(url:String):Boolean {
 			var temp:Array = url.match(/.f4m$/);

@@ -8,55 +8,6 @@
 	<title>Video Player Sample</title>
 	<link rel="stylesheet" href="sample.css" type="text/css">
 	<script type="text/javascript" src="../src/yavideo5.js"></script>
-	<script type="text/javascript">
-		//Video player object (instance) MUST BE a global object or an object that reachable from global scope.
-		//Because, in case use Flash fallback, Flach calls video player's methods through ExternalInterface.
-		var videoPlayer;
-		window.onload = function () {
-			var config = {
-				autoplay: false,
-				preload: "metadata",
-				loop: false,
-				poster: "",
-				videoElement: document.getElementById("video_player"),
-				objectElement: document.getElementById("external_player"),
-				playButton: document.getElementById("play_button"),
-				pauseButton: document.getElementById("pause_button"),
-				forwardButton: document.getElementById("forward_button"),
-				rewindButton: document.getElementById("rewind_button"),
-				forwardTime: 10,
-				rewindTime: 10,
-				seekbar: document.getElementById("seekbar"),
-				seekHandle: document.getElementById("seek_handle"),
-				progressBar: document.getElementById("progress_bar"),
-				bufferedBar: document.getElementsByClassName("buffered_bar")[0],
-				currentTimeDisplay: null,
-				durationDisplay: null,
-				remainingTimeDisplay: null,
-				timeDisplay: document.getElementById("time"),
-				fullScreenButton: null,
-				fullScreenControls: false,
-				/*
-				html5Video:{
-					//m3u8: "example.m3u8",
-					mp4: "wd.mp4",
-					webm: "wd.webm",
-					//ogv: "sol.ogg"
-				},
-				*/
-				flashVideo:"wd.mp4",
-				deleteUnusedElement: true,
-				//Instance name of you created (new-ed) player. (at this case, "videoPlayer")
-				insName: "videoPlayer"
-			};
-			//
-			videoPlayer = new YAVideo5(config);
-			//videoPlayer.onStart(function () {console.log('onStart')});
-			//videoPlayer.onTimeUpdate(function () {console.log('onTimeUpdate')});
-			//videoPlayer.onComplete(function () {console.log('onComplete')});
-			//videoPlayer.when(3,	function () {console.log('when')});
-		}
-	</script>
 </head>
 <body>
 	<div id="video_wrapper">
@@ -76,8 +27,8 @@
 			</object>
 			-->
 		</video>
-		<object data="player.swf" id="external_player" type="application/x-shockwave-flash">
-			<param name="movie" value="player.swf">
+		<object data="simpleplayer.swf" id="external_player" type="application/x-shockwave-flash">
+			<param name="movie" value="simpleplayer.swf">
 			<param name="allowfullscreen" value="true">
 			<param name="allowscriptaccess" value="always">
 			<param name="wmode" value="transparent">
@@ -97,5 +48,52 @@
 			</div>
 		</div>
 	</div>
+	<script type="text/javascript">
+		//Video player object (instance) MUST BE a global object or an object that reachable from global scope.
+		//Because, in case use Flash fallback, Flach calls video player's methods through ExternalInterface.
+		var videoPlayer;
+		var config = {
+			autoplay: false,
+			preload: "metadata",
+			loop: false,
+			poster: "",
+			videoElement: document.getElementById("video_player"),
+			objectElement: document.getElementById("external_player"),
+			playButton: document.getElementById("play_button"),
+			pauseButton: document.getElementById("pause_button"),
+			forwardButton: document.getElementById("forward_button"),
+			rewindButton: document.getElementById("rewind_button"),
+			forwardTime: 10,
+			rewindTime: 10,
+			seekbar: document.getElementById("seekbar"),
+			seekHandle: document.getElementById("seek_handle"),
+			progressBar: document.getElementById("progress_bar"),
+			bufferedBar: document.getElementsByClassName("buffered_bar")[0],
+			currentTimeDisplay: null,
+			durationDisplay: null,
+			remainingTimeDisplay: null,
+			timeDisplay: document.getElementById("time"),
+			fullScreenButton: null,
+			fullScreenControls: false,
+			/*
+			html5Video:{
+				//m3u8: "example.m3u8",
+				mp4: "wd.mp4",
+				webm: "wd.webm",
+				//ogv: "sol.ogg"
+			},
+			*/
+			flashVideo:"wd.mp4",
+			deleteUnusedElement: true,
+			//Instance name of you created (new-ed) player. (at this case, "videoPlayer")
+			insName: "videoPlayer"
+		};
+		//
+		videoPlayer = new YAVideo5(config);
+		//videoPlayer.onStart(function () {console.log('onStart')});
+		//videoPlayer.onTimeUpdate(function () {console.log('onTimeUpdate')});
+		//videoPlayer.onComplete(function () {console.log('onComplete')});
+		//videoPlayer.when(3,	function () {console.log('when')});
+	</script>
 </body>
 </html>

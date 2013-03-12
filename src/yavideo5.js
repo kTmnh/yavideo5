@@ -498,10 +498,16 @@
 			},
 			//click event handler for forwardButton
 			clickForward: function () {
+				if (!useHTML5) {
+					currentTime = objectElement.getCurrentTimeSWF();
+				}
 				p.seek(currentTime + forwardTime);
 			},
 			//click event handler for rewindButton
 			clickRewind: function () {
+				if (!useHTML5) {
+					currentTime = objectElement.getCurrentTimeSWF();
+				}
 				var targetTime = currentTime - rewindTime;
 				if (targetTime <= 0) {
 					targetTime = 0;
@@ -534,6 +540,7 @@
 						p.clickPlay();
 					}
 				} else {
+					currentTime = objectElement.getCurrentTimeSWF();
 					objectElement.seekSWF(targetTime);
 				}
 			},
