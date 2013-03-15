@@ -19,5 +19,4 @@ Usage
 
 3. Make configulation object for your HTML elements, video sourses, player related vars, etc. (See sample/index.html)
 
-4 New the yavideo5 instance with configuration object.
-
+4. New the yavideo5 instance with configuration object.
