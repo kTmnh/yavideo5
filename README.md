@@ -6,6 +6,7 @@ What is good?
 
 * Easy to make your own designed HTML5 player. Functions are ready for your HTML.
 * Support Flash fallback for non-HTML5 browsers. You can control your video player with same methods whether HTML5 Video or Flash.
+* Accurate buffered bar support.
 
 Usage
 -----
@@ -15,7 +16,7 @@ Usage
 3. new the yavideo5 instance with config object.
 4. Done!
 
-Typical sample:
+#### Typical sample:
 ``` html
 <html>
 <body>
@@ -44,10 +45,10 @@ Typical sample:
 <script src="yavideo5.js"></script>
 <script>
 var config = {
-  //Video & Object (Flash) elements
-  videoElement: document.getElementById("video_player"),
+	//Video & Object (Flash) elements
+	videoElement: document.getElementById("video_player"),
 	objectElement: document.getElementById("external_player"),
-  //Elements for controller (Not all elements are necessary if you don't need.)
+	//Elements for controller (Not all elements are necessary if you don't need.)
 	playButton: document.getElementById("play_button"),
 	pauseButton: document.getElementById("pause_button"),
 	forwardButton: document.getElementById("forward_button"),
@@ -57,15 +58,15 @@ var config = {
 	progressBar: document.getElementById("progress_bar"),
 	bufferedBar: document.getElementById("buffered_bar"),
 	timeDisplay: document.getElementById("time"),
-  //Video sources with types for HTML5 video you have (One of them will be played if available && playable).
+	//Video sources with types for HTML5 video you have (One of them will be played if available && playable).
 	html5Video:{
 		mp4: "video.mp4",
 		webm: "video.webm",
 		ogv: "video.ogg"
 	},
-  //Video source for Flash fallback
+	//Video source for Flash fallback
 	flashVideo:"video.mp4",
-  //Instance name (Reference from global scope) of video player (to be used for flash fallback)
+	//Instance name (Reference from global scope) of video player (to be used for flash fallback)
 	insName: "videoPlayer"
 }
 var videoPlayer = new yavideo5(config);
@@ -73,3 +74,20 @@ var videoPlayer = new yavideo5(config);
 </body>
 </html>
 ```
+Method Reference
+----------------
+
+|Methods|Return|Description|
+|:---------------------------|:------------|:-----------|
+|.getCurrentTime()|Current video time (in sec.)|Return current time in seconds.|
+|.getDuration()|Video's duration (in sec.)|Return video duration.|
+|.onStart( *__function__* )|-|Execute *__function__* on start.|
+|.onTimeUpdate( *__function__* )|-|Execute *__function__* while playing.|
+|.onComplete( *__function__* )|-|Execute *__function__* when video ends.|
+|.when( *__time__*, *__function__* , *__remove__* )|-|Execute *__function__* at the *__time__* on video playing. if *__remove__* is true, the function will be removed after fired (option).|
+|.setVolume( *__volume__* )|-|Set video *__volume__* (value mast be from 0 to 1).|
+|.getVolume()|Volume (0 to 1)|Return volume of the video.|
+
+Acknowledgements
+----------------
+Copyright © 2013 Katsumasa Tamanaha (kTmnh). Released under the MIT License.
